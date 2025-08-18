@@ -30,14 +30,13 @@ Covers happy paths and validation errors for signup/login, profile updates, subj
 
 ## Getting Started
 1. Clone the repo
-2. Install dependencies: `npm install` (or `yarn`)
+2. Install dependencies: `npm install` (for both frontend and backend folders)
 3. Set environment variables (DB URL, session secret, etc.)
-4. Run dev server: `npm run dev`
-5. Run tests: `npm test`
+4. Run dev server: `npm run dev` (to run both the database migration and nodemon server.js)
+5. Run dev client: `npm run dev` (to start client react app)
 
 ## Tech Stack (planned)
 - Backend: Node.js + Express
 - Auth: Passport.js, bcrypt
-- Database: SQL or NoSQL (configurable)
-- Frontend: React (or your chosen framework)
-- Testing: Jest/Supertest (adjust as needed)
+- Database: PostgreSQL
+- Frontend: React (java script)
