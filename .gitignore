@@ -1,0 +1,130 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+npm-cache/
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Build outputs
+dist/
+build/
+.out/
+.next/
+.cache/
+.tmp/
+temp/
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Env files (keep them secret!)
+.env
+.env.*
+!.env.example
+
+# Local database/config artifacts
+*.sqlite
+*.sqlite-journal
+db/*.sqlite
+db/*.db
+docker-data/
+pgdata/
+postgres-data/
+*.dump
+*.sql.gz
+
+# PIDs
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+coverage/
+.nyc_output/
+
+# Parcel / Vite / CRA caches
+.parcel-cache/
+.vite/
+vite.config.local.*
+.esbuild/
+.cache-loader/
+
+# Storybook
+.out/
+storybook-static/
+
+# ESLint/Prettier caches
+.eslintcache
+.prettier-cache
+
+# Mac/Other
+*.orig
+*.rej
+
+# Monorepo tooling
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Frontend specific
+client/node_modules/
+client/dist/
+client/build/
+client/.env.local
+client/.env.development.local
+client/.env.test.local
+client/.env.production.local
+
+# Backend specific
+server/node_modules/
+server/dist/
+server/build/
+server/.env.local
+server/.env.development.local
+server/.env.test.local
+server/.env.production.local
+
+# Prisma (if used)
+prisma/*.db
+prisma/migrations/dev/*
+!prisma/migrations/**/migration.sql
+
+# Docker
+docker-compose.override.yml
+.docker/
+*.local.yml
+
+# PM2 / process managers
+.pids
+.pm2
+
+# Sequelize (if used)
+sequelize-data/
+sequelize.log
+
+# Knex (if used)
+knexfile.local.js
