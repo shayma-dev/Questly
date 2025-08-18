@@ -15,7 +15,7 @@ React app built with Vite for Questly. Provides UI for authentication, dashboard
 1. Install
    - npm install
 2. Env (.env)
-   - VITE_API_BASE_URL=http://localhost:5173
+   - VITE_API_BASE_URL=http://localhost:5000
 3. Run
    - npm run dev
 
