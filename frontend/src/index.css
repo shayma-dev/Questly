@@ -1,0 +1,16 @@
+/* 
+    index.css = baseline, site-wide rules.
+    - import this file in index.js
+    - use this file to set up the basic styles for your app, such as body, headings, links, etc.
+    - you can also import other CSS files here if needed  
+
+    Imported once in ( src/main.jsx in Vite) before React renders anything 
+    • Whatever you put in index.css is injected into the document <head> as a single <style> tag (via the bundler).
+    • Because it loads before any component tree is mounted, the rules here apply to every element unless overridden later.
+
+    Typical content:
+    – CSS resets / normalize styles
+    – Root variables (:root { --primary: #2f80ed; })
+    – Body‐level fonts, background colors, margin resets
+    – Utility helper classes that you really want available everywhere
+*/
