@@ -45,7 +45,7 @@ export default function AppNav() {
           onClick={() => navigate("/profile")}
           title="Home"
         >
-          Learnify
+          Questly
         </div>
 
         <NavLink to="/tasks" style={linkStyle}>
@@ -54,14 +54,8 @@ export default function AppNav() {
         <NavLink to="/study" style={linkStyle}>
           Study Planner
         </NavLink>
-        <NavLink to="/focus" style={linkStyle}>
-          Focus
-        </NavLink>
         <NavLink to="/notekeeper" style={linkStyle}>
           Note Keeper
-        </NavLink>
-        <NavLink to="/habits" style={linkStyle}>
-          Habits
         </NavLink>
       </div>
 

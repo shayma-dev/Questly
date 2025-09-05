@@ -17,7 +17,7 @@ export default function LandingPageUI({
   return (
     <div style={{ padding: 16 }}>
       {" "}
-      <h1>Welcome to Learnify</h1>
+      <h1>Welcome to Questly</h1>
       {error && <p style={{ color: "crimson" }}>{error}</p>}
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
         {" "} 

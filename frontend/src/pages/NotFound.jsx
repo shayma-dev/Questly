@@ -15,7 +15,6 @@ export default function NotFound() {
   return (
     <>
       {isAuthed && <AppNav />}
-      <FocusAlarmWatcher />
 
       {/* Main content */}
       <main
