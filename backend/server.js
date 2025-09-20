@@ -8,6 +8,8 @@ import { fileURLToPath } from "url";
 import authRoutes from "./routes/auth.js";
 import profileRoutes from "./routes/profile.js";
 import taskRoutes from "./routes/tasks.js";
+import plannerRoutes from "./routes/planner.js";
+import noteRoutes from "./routes/notes.js";
 import configurePassport from "./config/passport.js";
 import { connectDB } from "./models/db.js";
 
@@ -65,6 +67,8 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/planner", plannerRoutes);
+app.use("/api/notes", noteRoutes);
 
 // Session check for SPA bootstrapping
 app.get("/api/auth/session", (req, res) => {
