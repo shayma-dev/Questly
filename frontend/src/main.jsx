@@ -1,23 +1,16 @@
-import React from 'react';
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App'; // Import App
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App.jsx";
+import { initTheme } from "./utils/theme";
+import { ConfirmProvider } from "./components/ui/useConfirm.jsx";
 
-// Import Mantine styles
-import '@mantine/core/styles.css'; 
-import 'highlight.js/styles/github.css';
-import { createTheme, MantineProvider } from '@mantine/core';
+initTheme();
 
-// Create a theme for Mantine components (customize as needed)
-const theme = createTheme({
-  // Add custom theme settings here, if required
-});
-
-// Render the application
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <MantineProvider theme={theme}>
-          <App /> 
-    </MantineProvider>
-  </StrictMode>,
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <ConfirmProvider>
+      <App />
+    </ConfirmProvider>
+  </React.StrictMode>
 );

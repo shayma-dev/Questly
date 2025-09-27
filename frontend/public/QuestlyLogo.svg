@@ -1,0 +1,67 @@
+<!-- Questly — Open Book + Checkmark Badge (High-Contrast Colors) -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Questly Logo">
+  <defs>
+    <!-- Backgroun-=d gradient circle (unchanged) -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1E3A8A"/>
+      <stop offset="100%" stop-color="#0EA5A4"/>
+    </linearGradient>
+
+    <!-- Neutral palette for inner elements -->
+    <!-- Page whites: warm white and cool light gray for clear separation -->
+    <linearGradient id="pageLeft" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F7FAFC"/> <!-- warm white -->
+    </linearGradient>
+    <linearGradient id="pageRight" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F2F6F9"/>  <!-- cool light gray -->
+      <stop offset="100%" stop-color="#E8EFF5"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="128" cy="128" r="104" fill="url(#bg)"/>
+
+  <!-- Page block (bottom edge of sheets) -->
+
+
+  <!-- Left page (warmer white) -->
+  <path d="M64 104c0-13 11-24 24-24h40c14 0 26 12 26 26v44c0 15-13 28-28 28H88c-13 0-24-11-24-24v-50z"
+        fill="url(#pageLeft)"/>
+
+  <!-- Right page (cool light gray) -->
+  <path d="M192 104c0-13-11-24-24-24h-38c-14 0-26 12-26 26v44c0 15 13 28 28 28h36c13 0 24-11 24-24v-50z"
+        fill="url(#pageRight)"/>
+
+  <!-- Center spine (darker neutral for contrast) -->
+  <rect x="122" y="78" width="4" height="96" rx="2" fill="#9AA6B2"/>
+  <rect x="128" y="78" width="4" height="96" rx="2" fill="#B3BFCA"/>
+
+  <!-- Subtle page lines (lighter so they don't compete) -->
+  <g stroke="#D5E3EA" stroke-width="6" stroke-linecap="round" opacity="0.9">
+    <line x1="88" y1="132" x2="116" y2="132"/>
+    <line x1="88" y1="146" x2="114" y2="146"/>
+    <line x1="140" y1="132" x2="168" y2="132"/>
+    <line x1="142" y1="146" x2="166" y2="146"/>
+  </g>
+
+  <!-- Completion badge with high-contrast colors -->
+  <g transform="translate(182,98)">
+    <!-- Deeper teal for the badge so it stands out on both left/right pages -->
+    <circle cx="0" cy="0" r="18" fill="#0EA5A4"/>
+    <!-- White check with a subtle dark outline for crisp edges on teal -->
+    <path d="M-8 0 l6 6 l12 -12"
+          fill="none"
+          stroke="#FFFFFF"
+          stroke-width="6"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+    <path d="M-8 0 l6 6 l12 -12"
+          fill="none"
+          stroke="#0B1324"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          opacity="0.3"/>
+  </g>
+</svg>

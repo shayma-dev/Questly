@@ -25,4 +25,20 @@ router.post("/login", (req, res, next) => {
 
 router.post("/logout", authController.logout);
 
+
+// routes/auth.js (or wherever your router is defined)
+router.get("/session", (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ user: null, error: "unauthorized" });
+    }
+  
+    return res.json({ user: req.user });
+  } catch (e) {
+    console.error("session error:", e?.message || e);
+    return res.status(500).json({ user: null, error: "server_error" });
+  }
+});
+
+
 export default router;

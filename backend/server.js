@@ -1,55 +1,76 @@
+// backend/server.js
+import env from "dotenv";
 import express from "express";
 import session from "express-session";
 import passport from "passport";
-import env from "dotenv";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+
+import configurePassport from "./config/passport.js";
 import authRoutes from "./routes/auth.js";
-import profileRoutes from "./routes/profile.js";
 import taskRoutes from "./routes/tasks.js";
 import plannerRoutes from "./routes/planner.js";
 import sessionRoutes from "./routes/sessions.js";
 import noteRoutes from "./routes/notes.js";
-import configurePassport from "./config/passport.js";
-import { connectDB } from "./models/db.js";
+import profileRoutes from "./routes/profile.js";
+
+import { connectDB, query } from "./models/db.js";
+
+// Only load .env in non-production
+if (process.env.NODE_ENV !== "production") {
+  env.config();
+}
 
 const app = express();
-env.config();
 const port = process.env.PORT || 5000;
-// Call connectDB to establish connection
-connectDB(); // Connect to the database
+
+// Connect to DB before starting the server
+await connectDB();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+/* ---------------- CORS: single source of truth ---------------- */
+const defaultAllowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+];
+const envOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+const allowedOrigins = envOrigins.length ? envOrigins : defaultAllowedOrigins;
 
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true); // health checks, curl
+    const ok = allowedOrigins.includes(origin);
+    return ok
+      ? callback(null, true)
+      : callback(new Error(`CORS blocked: ${origin}`));
+  },
+  credentials: true,
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
 app.set("trust proxy", 1);
 
-// Sessions: cross-origin cookie flags (MemoryStore)
 app.use(
   session({
     name: "sid",
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: false, // important to not save empty sessions
+    saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // required when SameSite=None; works on Chrome localhost
-      sameSite: "lax", // allow cross-origin
-      maxAge: 1000 * 60 * 60 * 4, // 4 hours
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 1000 * 60 * 60 * 4,
       path: "/",
     },
   })
@@ -59,31 +80,30 @@ app.use(passport.initialize());
 app.use(passport.session());
 configurePassport(passport);
 
-app.use((req, res, next) => {
-  res.locals.user = req.user;
+app.use(express.static(path.join(__dirname, "public")));
+
+app.use((req, _res, next) => {
+  req.appUser = req.user || null;
   next();
 });
 
-// Routes
+/* ---------------- Routes ---------------- */
 app.use("/api/auth", authRoutes);
-app.use("/api/profile", profileRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/planner", plannerRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/notes", noteRoutes);
-// Session check for SPA bootstrapping
-app.get("/api/auth/session", (req, res) => {
-  if (req.user) {
-    const { password, password_hash, ...safe } = req.user;
-    return res.json({ user: safe });
-  }
-  return res.status(401).json({ error: "UNAUTHENTICATED" });
-});
+app.use("/api/profile", profileRoutes);
 
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
   res.json({ message: "Welcome to Questly API" });
 });
 
+/* ---------------- Start Server ---------------- */
 app.listen(port, () => {
-  console.log(`Questly server running at http://localhost:${port}`);
+  console.log(`Questly server running on port ${port}`);
+});
+
+process.on("unhandledRejection", (e) => {
+  console.error("UNHANDLED REJECTION:", e && (e.stack || e));
 });

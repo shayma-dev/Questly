@@ -2,11 +2,24 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/QuestlyLogo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <title>Questly</title>
 
-    <title> Questly </title>
+    <script>
+      // Set or remove .dark on first paint
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          var prefersDark = window.matchMedia(
+            "(prefers-color-scheme: dark)"
+          ).matches;
+          var enable = stored === "dark" || (!stored && prefersDark);
+          document.documentElement.classList.toggle("dark", enable);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

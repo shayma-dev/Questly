@@ -57,13 +57,34 @@ export const updateAvatar = async (req, res) => {
 
 export const addSubject = async (req, res) => {
   const { name } = req.body;
-  const existingSubject = await query("SELECT * FROM subjects WHERE user_id = $1 AND LOWER(name) = LOWER($2)", [req.user.id , name]);
-    if (existingSubject.rows.length > 0) {
-      return res.status(400).json({ error: "Subject already added" });
-    }
+
+  // Validate basic input (optional but recommended)
+  const trimmed = String(name || "").trim();
+  if (!trimmed) {
+    return res.status(400).json({ error: "Name is required" });
+  }
+
+  const existingSubject = await query(
+    "SELECT 1 FROM subjects WHERE user_id = $1 AND LOWER(name) = LOWER($2)",
+    [req.user.id, trimmed]
+  );
+  if (existingSubject.rows.length > 0) {
+    return res.status(400).json({ error: "Subject already added" });
+  }
+
   try {
-    const result = await query("INSERT INTO subjects (name, user_id) VALUES ($1, $2) RETURNING id", [name, req.user.id]);
-    res.status(201).json({ message: "Subject added", id: result.rows[0].id });
+    // RETURNING id, name to be 100% sure we return stored values
+    const result = await query(
+      "INSERT INTO subjects (name, user_id) VALUES ($1, $2) RETURNING id, name",
+      [trimmed, req.user.id]
+    );
+
+    const created = result.rows[0]; // { id, name }
+    res.status(201).json({
+      message: "Subject added",
+      id: created.id,
+      name: created.name,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error adding subject" });

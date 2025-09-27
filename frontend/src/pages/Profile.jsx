@@ -1,11 +1,10 @@
-// ==============================
-// src/pages/ProfilePage.jsx
+// src/pages/Profile.jsx
 // Container: data fetching, mutations, navigation, and validation.
-// NOTE: Removed isMounted ref that kept loading stuck in React Strict Mode.
-// ==============================
 import React, { useCallback, useEffect, useState } from "react";
+import RequireAuthReady from "../utils/RequireAuthReady";
+import PageLoader from "../components/common/PageLoader";
 import ProfileUI from "../components/profile/ProfileUI";
-import AppNav from "../components/common/AppNav";
+import FocusAlarmWatcher from "../components/focus/FocusAlarmWatcher.jsx";
 import {
   getProfile,
   updateUsername,
@@ -13,34 +12,38 @@ import {
   addSubject as apiAddSubject,
   deleteSubject as apiDeleteSubject,
 } from "../api/profileApi";
+import { toast } from "sonner";
+import { useAuth } from "../context/AuthContext";
 
 // Small helpers/constants for consistent UX and validation
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5MB
 const ALLOWED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-function normalizeError(e) {
-  return e?.response?.data?.error || e?.message || "Something went wrong";
+// With the axios interceptor, err is { status, message, details, raw }
+function toMessage(err, fallback = "Something went wrong") {
+  return err?.message || err?.response?.data?.error || fallback;
 }
 
-export default function ProfilePage() {
+function ProfileInner() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [, setError] = useState(""); // not rendered; we use toasts
 
-  // UI state: page-level flags/messages
-  const [loading, setLoading] = useState(true); // while fetching profile data
-  const [saving, setSaving] = useState(false); // while saving/updating anything
-  const [error, setError] = useState(""); // user-facing error text
-
-  // Server data I render
+  // Server data
   const [user, setUser] = useState(null);
   const [subjects, setSubjects] = useState([]);
 
-  // Form state derived from user
+  // Form state
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
-  // Kept only for a “batch save” flow; with immediate upload it stays null
+  // Optional “batch” avatar upload
   const [avatarFile, setAvatarFile] = useState(null);
 
-  // Pull the latest profile + subject list and hydrate the form
+  // NEW: updater from auth context so Navbar reflects changes immediately
+  const { updateUser: updateAuthUser } = useAuth();
+
+  // Load profile
   const load = useCallback(async () => {
     setError("");
     setLoading(true);
@@ -51,76 +54,105 @@ export default function ProfilePage() {
       setName(data.user?.username || "");
       setEmail(data.user?.email || "");
     } catch (e) {
-      setError(normalizeError(e));
+      const msg = toMessage(e, "Failed to load profile");
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Initial fetch
   useEffect(() => {
+    // Runs only after auth is ready due to RequireAuthReady wrapper
     load();
   }, [load]);
 
-  // Upload avatar immediately after selection (no need to press Save)
-  const handleSelectAvatar = useCallback(async (file) => {
-    setError("");
+  // Immediate avatar upload
+  const handleSelectAvatar = useCallback(
+    async (file) => {
+      setError("");
 
-    // Minimal client-side validation
-    if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
-      setError("Please choose a JPG, PNG, or WebP image.");
-      return;
-    }
-    if (file.size > MAX_AVATAR_BYTES) {
-      setError("File too large. Please select an image under 5MB.");
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const res = await updateAvatar(file); // sends FormData('avatar', file)
-      // reflect the new image immediately
-      setUser((prev) => (prev ? { ...prev, avatar_url: res.avatarUrl } : prev));
-      setAvatarFile(null); // make sure Save doesn’t try to re-upload
-      // No full refetch; local state already updated
-    } catch (e) {
-      setError(normalizeError(e));
-    } finally {
-      setSaving(false);
-    }
-  }, []);
-
-  // Save button: only pushes changes that actually changed
-  const handleSaveProfile = useCallback(async () => {
-    if (!user) return;
-    setError("");
-    setSaving(true);
-    try {
-      // Only update username when it’s different
-      if (name && name !== user.username) {
-        await updateUsername(name);
-        // keep local state in sync without refetch
-        setUser((prev) => (prev ? { ...prev, username: name } : prev));
+      if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+        const msg = "Please choose a JPG, PNG, or WebP image.";
+        setError(msg);
+        toast.warning(msg);
+        return;
+      }
+      if (file.size > MAX_AVATAR_BYTES) {
+        const msg = "File too large. Please select an image under 5MB.";
+        setError(msg);
+        toast.warning(msg);
+        return;
       }
 
-      // Optional “batch” avatar upload path (if immediate upload didn't run)
-      if (avatarFile) {
-        const res = await updateAvatar(avatarFile);
-        setUser((prev) =>
-          prev ? { ...prev, avatar_url: res.avatarUrl } : prev
-        );
+      setSaving(true);
+      try {
+        const res = await updateAvatar(file); // expect { avatarUrl }
+        // Local page state
+        setUser((prev) => (prev ? { ...prev, avatar_url: res.avatarUrl } : prev));
+        // Global auth state => Navbar updates instantly
+        updateAuthUser?.({
+          avatar_url: res.avatarUrl,
+          // Optional: bump a version to force <img> reload if URL is reused
+          avatar_version: Date.now(),
+        });
         setAvatarFile(null);
+        toast.success("Avatar updated");
+      } catch (e) {
+        const msg = toMessage(e, "Failed to update avatar");
+        setError(msg);
+        toast.error(msg);
+      } finally {
+        setSaving(false);
       }
+    },
+    [updateAuthUser]
+  );
 
-      // No explicit Refresh feature anymore
-    } catch (e) {
-      setError(normalizeError(e));
-    } finally {
-      setSaving(false);
-    }
-  }, [avatarFile, name, user]);
+  // Save profile changes
+  const handleSaveProfile = useCallback(
+    async () => {
+      if (!user) return;
+      setError("");
+      setSaving(true);
+      try {
+        let changed = false;
 
-  // Add a new subject (server returns id; append locally)
+        if (name && name !== user.username) {
+          await updateUsername(name);
+          setUser((prev) => (prev ? { ...prev, username: name } : prev));
+          updateAuthUser?.({ username: name }); // sync Navbar
+          changed = true;
+        }
+
+        if (avatarFile) {
+          const res = await updateAvatar(avatarFile);
+          setUser((prev) => (prev ? { ...prev, avatar_url: res.avatarUrl } : prev));
+          updateAuthUser?.({
+            avatar_url: res.avatarUrl,
+            avatar_version: Date.now(), // cache-buster
+          });
+          setAvatarFile(null);
+          changed = true;
+        }
+
+        if (changed) {
+          toast.success("Profile updated");
+        } else {
+          toast.info("No changes to save");
+        }
+      } catch (e) {
+        const msg = toMessage(e, "Failed to save profile");
+        setError(msg);
+        toast.error(msg);
+      } finally {
+        setSaving(false);
+      }
+    },
+    [avatarFile, name, updateAuthUser, user]
+  );
+
+  // Subjects
   const handleAddSubject = useCallback(async (subjectName) => {
     const n = subjectName?.trim();
     if (!n) return;
@@ -128,38 +160,44 @@ export default function ProfilePage() {
     try {
       const res = await apiAddSubject(n);
       setSubjects((prev) => [...prev, { id: res.id, name: n }]);
+      toast.success("Subject added");
     } catch (e) {
-      setError(normalizeError(e));
+      const msg = toMessage(e, "Failed to add subject");
+      setError(msg);
+      toast.error(msg);
     }
   }, []);
 
-  // Remove a subject by id and optimistically drop it from the list
   const handleDeleteSubject = useCallback(async (id) => {
     setError("");
     try {
       await apiDeleteSubject(id);
       setSubjects((prev) => prev.filter((s) => s.id !== id));
+      toast.success("Subject deleted");
     } catch (e) {
-      setError(normalizeError(e));
+      const msg = toMessage(e, "Failed to delete subject");
+      setError(msg);
+      toast.error(msg);
     }
   }, []);
 
+  // Page-level loading UI (same pattern as TasksPage)
+  if (loading) {
+    return <PageLoader label="Loading your profile…" />;
+  }
 
   return (
     <>
-      {/* Top navigation shared across pages */}
-      <AppNav/>
-      {/* Presentational component receives all data + handlers */}
+      <FocusAlarmWatcher />
       <ProfileUI
         user={user}
         subjects={subjects}
         loading={loading}
         saving={saving}
-        error={error}
         form={{ name, email }}
         onChange={{
           onChangeName: setName,
-          onChangeAvatar: handleSelectAvatar, // upload immediately on file choose
+          onChangeAvatar: handleSelectAvatar,
           onAddSubject: handleAddSubject,
         }}
         actions={{
@@ -168,5 +206,13 @@ export default function ProfilePage() {
         }}
       />
     </>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <RequireAuthReady>
+      <ProfileInner />
+    </RequireAuthReady>
   );
 }

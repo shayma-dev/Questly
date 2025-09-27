@@ -1,40 +1,45 @@
 import pg from "pg";
 import env from "dotenv";
 
-env.config();
+// Only load .env in non-production to avoid overriding Render envs
+if (process.env.NODE_ENV !== "production") {
+  env.config();
+}
 
-const requiredEnvVars = [
-  "PG_USER",
-  "PG_HOST",
-  "PG_DATABASE",
-  "PG_PASSWORD",
-  "PG_PORT",
-];
+const url = process.env.DATABASE_URL;
 
-requiredEnvVars.forEach((varName) => {
-  if (!process.env[varName]) {
-    console.log(`missing required env variable : ${varName}`);
-    process.exit(1);
-  }
-});
+if (!url) {
+  console.error("missing required env variable: DATABASE_URL");
+  process.exit(1);
+}
+
+// Decide SSL based on URL host
+const needsSSL = /neon\.tech/i.test(url) || !/localhost|127\.0\.0\.1/.test(url);
 
 // Create a new pool instance for database connections
 const pool = new pg.Pool({
-  user: process.env.PG_USER,
-  host: process.env.PG_HOST,
-  database: process.env.PG_DATABASE,
-  password: process.env.PG_PASSWORD,
-  port: process.env.PG_PORT,
+  connectionString: url,
+  // SSL only when needed (Neon and most managed PG require it)
+  ssl: needsSSL ? { rejectUnauthorized: false } : false,
+});
+
+// Ensure schema is public for each connection (belt-and-suspenders)
+pool.on("connect", async (client) => {
+  try {
+    await client.query(`SET search_path TO ${process.env.SEARCH_PATH || "public"}`);
+  } catch (e) {
+    console.error("Failed to set search_path", e);
+  }
 });
 
 // Function to connect to the database
 const connectDB = async () => {
   try {
-    await pool.connect();  // Attempt to connect to the database
+    await pool.query("SELECT 1"); // simple ping
     console.log("Connected to the database");
   } catch (error) {
     console.error("Database connection failed", error);
-    process.exit(1);  // Exit if connection fails
+    process.exit(1);
   }
 };
 
@@ -47,12 +52,11 @@ pool.on("error", (err) => {
 // Simplified query function with error handling
 export const query = async (text, params) => {
   try {
-    return await pool.query(text, params);  // Execute the query
+    return await pool.query(text, params);
   } catch (error) {
     console.error("Error executing query", { text, params, error });
-    throw error;  // Rethrow the error for higher-level handling
+    throw error;
   }
 };
 
-// Export the connection function and query function
 export { connectDB };

@@ -1,34 +1,16 @@
-// ==============================
 // src/components/profile/ProfileUI.jsx
-// Presentational: receives props + callbacks; no data fetching or navigation.
-// Designers can freely change markup and styles without touching logic.
-// ==============================
 import React, { useMemo, useState } from "react";
+import Button from "../ui/Button";
+import Card, { CardBody, CardHeader } from "../ui/Card";
+import { Input, Label } from "../ui/Input";
+import { IconTrash } from "../icons/Icons";
+import { subjectColor } from "../../utils/subjectColor";
 
-/**
- * Props contract (keep stable):
- * - user: { id, username, email, avatar_url? }
- * - subjects: Array<{ id: number|string, name: string }>
- * - form: { name: string, email: string }
- * - loading: boolean
- * - saving: boolean
- * - error: string
- * - onChange: {
- *     onChangeName(value: string): void,
- *     onChangeAvatar(file: File): void,
- *     onAddSubject(name: string): void
- *   }
- * - actions: {
- *     onSaveProfile(): void,
- *     onDeleteSubject(id: number|string): void,
- *   }
- */
 export default function ProfileUI({
   user,
   subjects = [],
   loading = false,
   saving = false,
-  error = "",
   form = { name: "", email: "" },
   onChange = {
     onChangeName: () => {},
@@ -50,194 +32,168 @@ export default function ProfileUI({
   }, [user?.username]);
 
   return (
-    <div
-      style={{ padding: 24, maxWidth: 960, margin: "0 auto" }}
-    >
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h1 style={{ margin: 0 }}>Profile</h1>
-      </header>
-
-      {/* Status and errors (announced to screen readers) */}
-      {error ? (
-        <div
-          role="status"
-          aria-live="polite"
-          style={{ color: "crimson", marginTop: 12 }}
-        >
-          {error}
-        </div>
-      ) : null}
-
+    <div className="mx-auto max-w-5xl px-4 py-6 text-[rgb(var(--fg))]">
       {loading ? (
-        <p style={{ marginTop: 12 }}>Loading…</p>
+        <div className="mt-6 text-sm text-[rgb(var(--muted))]">Loading…</div>
       ) : (
-        <>
-          {/* Avatar + name */}
-          <section style={{ marginTop: 24, textAlign: "center" }}>
-            <img
-              src={user?.avatar_url || avatarFallback}
-              alt="Profile avatar"
-              style={{
-                width: 96,
-                height: 96,
-                borderRadius: "50%",
-                objectFit: "cover",
-              }}
-            />
-            <div style={{ marginTop: 8, fontWeight: 600 }}>
-              {user?.username || form.name || "—"}
-            </div>
-            <div style={{ color: "#6b7280", fontSize: 12 }}>Student</div>
+        <div className="mt-2 grid gap-6 md:grid-cols-2">
+          {/* Profile card */}
+          <Card>
+            <CardHeader title="Your Profile" />
+            <CardBody>
+              <section className="text-center">
+                <div className="mx-auto h-24 w-24 overflow-hidden rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--card))]">
+                  <img
+                    src={user?.avatar_url || avatarFallback}
+                    alt="Profile avatar"
+                    className="h-24 w-24 rounded-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
 
-            <div style={{ marginTop: 12 }}>
-              <label
-                style={{
-                  cursor: saving ? "not-allowed" : "pointer",
-                  opacity: saving ? 0.6 : 1,
-                }}
-              >
-                <span
-                  style={{
-                    padding: "6px 12px",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 6,
-                  }}
-                >
-                  Change avatar
-                </span>
-                <input
-                  data-testid="input-avatar"
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  disabled={saving} // prevent changes while saving
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      // Validation is in the container
-                      onChange.onChangeAvatar(file);
-                    }
-                  }}
-                />
-              </label>
-            </div>
-          </section>
+                <div className="mt-3">
+                  <div className="font-semibold">
+                    {user?.username || form.name || "—"}
+                  </div>
+                  <div className="text-xs text-[rgb(var(--muted))]">Student</div>
+                </div>
 
-          {/* Profile form */}
-          <section style={{ marginTop: 24 }} aria-busy={saving}>
-            <h3>Profile</h3>
-            <div style={{ maxWidth: 420, display: "grid", gap: 10 }}>
-              <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, color: "#6b7280" }}>Name</span>
-                <input
-                  data-testid="input-name"
-                  value={form.name}
-                  placeholder="Your name"
-                  onChange={(e) => onChange.onChangeName(e.target.value)}
-                  style={{
-                    padding: "8px 10px",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 6,
-                  }}
-                />
-              </label>
+                <div className="mt-4">
+                  <label
+                    className={[
+                      "inline-block cursor-pointer rounded-md border border-[rgb(var(--border))] px-3 py-2 text-sm",
+                      "bg-[rgb(var(--card))] hover:bg-[rgb(var(--card))]/80",
+                      saving ? "pointer-events-none opacity-60" : "",
+                    ].join(" ")}
+                  >
+                    <span>Change avatar</span>
+                    <input
+                      data-testid="input-avatar"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={saving}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) onChange.onChangeAvatar(file);
+                      }}
+                    />
+                  </label>
+                </div>
+              </section>
+            </CardBody>
+          </Card>
 
-              <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, color: "#6b7280" }}>Email</span>
-                <input
-                  data-testid="input-email"
-                  value={form.email}
-                  placeholder="Email"
-                  readOnly
-                  style={{
-                    padding: "8px 10px",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 6,
-                    background: "#f9fafb",
-                  }}
-                />
-              </label>
+          {/* Account details */}
+          <Card>
+            <CardHeader title="Account Details" />
+            <CardBody>
+              <div className="grid max-w-md gap-4">
+                <div>
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    data-testid="input-name"
+                    value={form.name}
+                    placeholder="Your name"
+                    onChange={(e) => onChange.onChangeName(e.target.value)}
+                  />
+                </div>
 
-              <div>
-                <button
-                  data-testid="btn-save"
-                  onClick={actions.onSaveProfile}
-                  disabled={saving}
-                  style={{
-                    padding: "8px 14px",
-                    borderRadius: 20,
-                    border: "1px solid #111827",
-                    background: "#111827",
-                    color: "white",
-                  }}
-                >
-                  {saving ? "Saving…" : "Save Changes"}
-                </button>
-                {/* Refresh button removed */}
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    data-testid="input-email"
+                    value={form.email}
+                    placeholder="Email"
+                    readOnly
+                    className="bg-[rgb(var(--card))] text-[rgb(var(--fg))]"
+                  />
+                </div>
+
+                <div className="pt-1">
+                  <Button
+                    data-testid="btn-save"
+                    onClick={actions.onSaveProfile}
+                    disabled={saving}
+                    className={[
+                      "bg-[rgb(var(--btn-primary-bg))] text-[rgb(var(--btn-primary-fg))]",
+                      "hover:bg-[rgb(var(--btn-primary-hover))]",
+                      saving ? "opacity-70" : "",
+                    ].join(" ")}
+                  >
+                    {saving ? "Saving…" : "Save Changes"}
+                  </Button>
+                </div>
               </div>
-            </div>
-          </section>
+            </CardBody>
+          </Card>
 
           {/* Subjects */}
-          <section style={{ marginTop: 24 }}>
-            <h3>Subjects</h3>
-            <div
-              style={{
-                background: "#f3f4f6",
-                borderRadius: 8,
-                padding: 12,
-                maxWidth: 640,
-              }}
-            >
-              {subjects.length === 0 && (
-                <div style={{ color: "#6b7280", padding: "8px 0" }}>
+          <Card className="md:col-span-2">
+            <CardHeader title="Subjects" />
+            <CardBody>
+              {subjects.length === 0 ? (
+                <div className="py-2 text-sm text-[rgb(var(--muted))]">
                   No subjects yet.
                 </div>
+              ) : (
+                <ul className="divide-y divide-[rgb(var(--border))]">
+                  {subjects.map((s) => {
+                    const c = subjectColor(s.id);
+                    return (
+                      <li
+                        key={s.id}
+                        className="flex items-center justify-between py-2"
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          {/* Colored dot */}
+                          <span
+                            className="inline-block h-3 w-3 flex-none rounded-full"
+                            style={{ backgroundColor: c.text }}
+                            aria-hidden="true"
+                          />
+                          {/* Subject name with tinted chip */}
+                          <span
+                            className="truncate rounded-full border px-3 py-1 text-sm"
+                            style={{
+                              backgroundColor: c.bg,
+                              color: c.text,
+                              borderColor: c.border,
+                            }}
+                            title={s.name}
+                          >
+                            {s.name}
+                          </span>
+                        </div>
+
+                        <button
+                          data-testid={`btn-delete-subject-${s.id}`}
+                          onClick={() => actions.onDeleteSubject(s.id)}
+                          aria-label={`Delete ${s.name}`}
+                          title={`Delete ${s.name}`}
+                          className="inline-flex items-center justify-center rounded-md p-2 transition-colors hover:bg-red-50 dark:hover:bg-red-900/30"
+                        >
+                          <IconTrash />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
               )}
-              {subjects.map((s) => (
-                <div
-                  key={s.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "8px 0",
-                    borderBottom: "1px solid #e5e7eb",
-                  }}
-                >
-                  <div style={{ fontWeight: 500 }}>{s.name}</div>
-                  <button
-                    data-testid={`btn-delete-subject-${s.id}`}
-                    onClick={() => actions.onDeleteSubject(s.id)}
-                    aria-label={`Delete ${s.name}`}
-                    title={`Delete ${s.name}`}
-                  >
-                    🗑️
-                  </button>
-                </div>
-              ))}
-              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                <input
+
+              <div className="mt-3 flex gap-2">
+                <Input
                   data-testid="input-new-subject"
                   placeholder="New subject"
                   value={newSubject}
                   onChange={(e) => setNewSubject(e.target.value)}
-                  style={{
-                    flex: 1,
-                    padding: "8px 10px",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 6,
-                    background: "white",
-                  }}
+                  className="flex-1"
                 />
-                <button
+                <Button
                   data-testid="btn-add-subject"
+                  variant="secondary"
                   onClick={() => {
                     if (!newSubject.trim()) return;
                     onChange.onAddSubject(newSubject.trim());
@@ -245,24 +201,11 @@ export default function ProfileUI({
                   }}
                 >
                   Add Subject
-                </button>
+                </Button>
               </div>
-            </div>
-          </section>
-
-          {/* Preferences (non-functional placeholders) */}
-          <section style={{ marginTop: 24 }}>
-            <h3>Preferences</h3>
-            <div style={{ display: "grid", gap: 10, maxWidth: 420 }}>
-              <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <input type="checkbox" /> Dark Mode
-              </label>
-              <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <input type="checkbox" /> Notifications
-              </label>
-            </div>
-          </section>
-        </>
+            </CardBody>
+          </Card>
+        </div>
       )}
     </div>
   );

@@ -1,16 +1,328 @@
-/* 
-    index.css = baseline, site-wide rules.
-    - import this file in index.js
-    - use this file to set up the basic styles for your app, such as body, headings, links, etc.
-    - you can also import other CSS files here if needed  
+/* Tailwind entry */
+@import "tailwindcss";
 
-    Imported once in ( src/main.jsx in Vite) before React renders anything 
-    • Whatever you put in index.css is injected into the document <head> as a single <style> tag (via the bundler).
-    • Because it loads before any component tree is mounted, the rules here apply to every element unless overridden later.
+/* Theme tokens */
+@theme {
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
 
-    Typical content:
-    – CSS resets / normalize styles
-    – Root variables (:root { --primary: #2f80ed; })
-    – Body‐level fonts, background colors, margin resets
-    – Utility helper classes that you really want available everywhere
-*/
+  /* Brand anchors — Breezy Coastal */
+  --gradient-hero-from: #A8E4E0; /* Bright Seafoam */
+  --gradient-hero-via:  #D5F0FF; /* Clear Sky */
+  --gradient-hero-to:   #2563EB; /* Indigo 600 for snappier depth */
+}
+
+/* Dark variant helper (class strategy) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* =========
+   Base tokens
+   ========= */
+:root {
+  /* App surfaces (RGB for Tailwind arbitrary utilities) */
+  --bg: 250 253 255;          /* bright near-white with soft blue cast */
+  --fg: 16 28 36;             /* clean ink */
+  --muted: 88 110 124;        /* cool slate */
+  --card: 242 248 252;        /* sky-washed surface */
+  --border: 210 228 238;      /* pale steel-blue */
+
+  /* Banner palette (light) */
+  --banner-card: #ffffff;
+  --banner-border: rgba(2, 6, 23, 0.06);
+  --banner-shadow: 0 6px 22px rgba(2, 6, 23, 0.05);
+
+  /* Banner subtle wash (light) */
+  --banner-bg: linear-gradient(
+    180deg,
+    color-mix(in oklab, #D5F0FF, #ffffff 84%),
+    color-mix(in oklab, #A8E4E0, #ffffff 90%)
+  );
+
+  /* Progress/ring accents */
+  --ring-track: rgba(0, 0, 0, 0.08);
+  --progress-color: #158D88; /* lively teal */
+  --ring: rgb(0 0 0 / 0.48);
+
+  /* Buttons (brighter contrast) */
+  --btn-primary-bg: 21 141 136;   /* teal pop */
+  --btn-primary-fg: 255 255 255;
+  --btn-primary-hover: 17 118 113;
+
+  --btn-secondary-bg: 232 244 250;/* sky mist */
+  --btn-secondary-fg: 16 28 36;
+  --btn-secondary-hover: 219 237 246;
+
+  /* Day pill — unselected (light) */
+  --day-pill-bg: 255 255 255;
+  --day-pill-fg: 16 28 36;
+  --day-pill-border: 210 228 238;
+  --day-pill-hover: 243 249 252;
+
+  /* Day pill — ACTIVE (light) */
+  --day-pill-active-bg: 21 141 136;
+  --day-pill-active-fg: 255 255 255;
+  --day-pill-active-border: 21 141 136;
+
+  /* Day pill — TODAY (light) */
+  --day-pill-today-ring: 37 99 235;   /* indigo-600 */
+  --day-pill-today-bg: 235 247 252;   /* airy aqua-sky */
+  --day-pill-today-border: 191 220 237;
+
+  /* Pill effects */
+  --pill-selected-bg: #0C3E44;       /* deep teal, cleaner than green */
+  --pill-selected-fg: #ffffff;
+  --pill-selected-shadow: 0 6px 14px rgba(12, 62, 68, 0.16);
+
+  /* Today halo with palette tint */
+  --pill-today-glow: 0 0 0 6px rgba(168, 228, 224, 0.22);
+  --pill-today-border: #A8E4E0;
+  --pill-today-bg: color-mix(in oklab, #D5F0FF, #ffffff 82%);
+
+  /* Hero mist colors */
+  --hero-from: var(--gradient-hero-from);
+  --hero-via:  var(--gradient-hero-via);
+  --hero-to:   var(--gradient-hero-to);
+}
+
+.dark {
+  --bg: 10 18 24;            /* ink-teal, brighter than before */
+  --fg: 234 245 250;         /* clear ice */
+  --muted: 170 192 204;      /* mist slate */
+  --card: 15 26 33;          /* deeper but clean */
+  --border: 40 64 76;        /* teal steel */
+
+  /* Banner (dark) — vivid but not harsh */
+  --banner-card: rgba(255, 255, 255, 0.05);
+  --banner-border: rgba(255, 255, 255, 0.10);
+  --banner-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+
+  --banner-bg: linear-gradient(
+    180deg,
+    color-mix(in oklab, #0E2B33, transparent 74%),
+    color-mix(in oklab, #2563EB, transparent 84%)
+  );
+
+  /* Progress/ring accents (dark) */
+  --ring-track: rgba(255, 255, 255, 0.18);
+  --progress-color: #6BE3E1; /* brighter aqua */
+  --ring: rgba(168, 228, 224, 0.60);
+
+  /* Buttons */
+  --btn-primary-bg: 34 197 194;   /* teal-400 */
+  --btn-primary-fg: 9 18 24;
+  --btn-primary-hover: 20 184 166;/* teal-500 */
+
+  --btn-secondary-bg: 27 40 48;   /* slate-teal */
+  --btn-secondary-fg: 234 245 250;
+  --btn-secondary-hover: 34 51 60;
+
+  /* Day pill — unselected (dark) */
+  --day-pill-bg: 22 34 41;
+  --day-pill-fg: 234 245 250;
+  --day-pill-border: 44 70 83;
+  --day-pill-hover: 28 45 55;
+
+  /* Day pill — ACTIVE (dark) */
+  --day-pill-active-bg: 255 255 255;
+  --day-pill-active-fg: 9 18 24;
+  --day-pill-active-border: 255 255 255;
+
+  /* Day pill — TODAY (dark) */
+  --day-pill-today-ring: 125 211 252;  /* sky-300 */
+  --day-pill-today-bg: 15 30 38;       /* deep teal wash */
+  --day-pill-today-border: 56 95 113;
+
+  /* Pill effects (dark) */
+  --pill-selected-bg: #E8FFFF;         /* very light aqua */
+  --pill-selected-fg: #0A1218;         /* ink */
+  --pill-selected-shadow: 0 6px 14px rgba(0, 0, 0, 0.34);
+
+  /* Today halo */
+  --pill-today-glow: 0 0 0 6px rgba(37, 150, 190, 0.24); /* ocean glow */
+  --pill-today-border: #2596BE;
+  --pill-today-bg: color-mix(in oklab, #0E2B33, #000 70%);
+
+  /* Hero anchors (dark) */
+  --hero-from: #0E2B33;
+  --hero-via:  #2563EB;
+  --hero-to:   #0A1218;
+}
+
+/* ======
+   Base
+   ====== */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* Even, breezy background (light) */
+:root body {
+  color: rgb(var(--fg));
+  font-family: var(--font-sans);
+
+  background:
+    /* Soft diagonal wash */
+    linear-gradient(120deg, rgba(213, 240, 255, 0.20), rgba(168, 228, 224, 0.14)) fixed,
+    /* Corner balancers */
+    radial-gradient(1180px 500px at -16% 22%, rgba(181,231,240,0.18), transparent 60%) fixed,
+    radial-gradient(1160px 520px at 118% 70%, rgba(37,99,235,0.10), transparent 62%) fixed,
+    /* Unifying ring */
+    radial-gradient(1400px 1400px at 50% 120%, rgba(168,228,224,0.14), transparent 74%) fixed,
+    /* Base */
+    rgb(var(--bg)) !important;
+}
+
+/* Dark variant — clearer and snappier */
+:root.dark body {
+  background:
+    linear-gradient(120deg, rgba(14,43,51,0.26), rgba(37,99,235,0.12)) fixed,
+    radial-gradient(1180px 500px at -18% 22%, rgba(14,43,51,0.30), transparent 60%) fixed,
+    radial-gradient(1160px 520px at 120% 72%, rgba(107,227,225,0.18), transparent 62%) fixed,
+    radial-gradient(1400px 1400px at 50% 115%, rgba(10,18,24,0.24), transparent 74%) fixed,
+    rgb(var(--bg)) !important;
+}
+
+/* Center mist tuned to the breezy palette */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(900px 560px at 50% 50%, color-mix(in oklab, var(--hero-via), #ffffff 84%), transparent 70%);
+  opacity: 0.09;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.02); opacity: 0.96; }
+}
+
+/* =========
+   Banner utilities
+   ========= */
+.banner-card {
+  border-radius: 16px;
+  background: var(--banner-card);
+  border: 1px solid var(--banner-border);
+  box-shadow: var(--banner-shadow);
+  position: relative;
+}
+.banner-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: var(--banner-bg);
+  pointer-events: none;
+}
+.banner-content {
+  position: relative;
+  padding: 16px 20px; /* px-5 py-4 */
+}
+.banner-title {
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* =========
+   Markdown / Prose polish
+   ========= */
+.prose-note {
+  color: rgb(var(--fg));
+  font-family: var(--font-sans);
+  line-height: 1.7;
+}
+
+/* Prevent additional quotes around inline code */
+.prose-note code::before,
+.prose-note code::after {
+  content: '';
+}
+
+/* Inline code chips */
+.prose-note :not(pre) > code {
+  background: #eef8fc; /* sky paper */
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+.dark .prose-note :not(pre) > code {
+  background: #162830; /* teal slate */
+}
+
+/* Code blocks */
+.prose-note pre {
+  background: #f4fbff;           /* airy sky */
+  border: 1px solid #d7e9f3;     /* pale steel */
+  border-radius: 8px;
+  padding: 16px;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+.dark .prose-note pre {
+  background: #0d1b22;           /* ink teal */
+  border-color: #1e343f;         /* steel teal */
+}
+
+/* Headings */
+.prose-note h1,
+.prose-note h2,
+.prose-note h3,
+.prose-note h4 {
+  color: rgb(var(--fg));
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 1.25em;
+  margin-bottom: 0.6em;
+}
+.prose-note h1 { font-size: 1.75rem; border-bottom: 2px solid rgb(var(--border)); padding-bottom: 0.35rem; }
+.prose-note h2 { font-size: 1.5rem; }
+.prose-note h3 { font-size: 1.25rem; }
+
+/* Paragraphs */
+.prose-note p {
+  margin-bottom: 0.9em;
+}
+
+/* Lists */
+.prose-note ul,
+.prose-note ol {
+  padding-left: 1.25rem;
+  margin: 0.75rem 0;
+}
+.prose-note li {
+  margin: 0.25rem 0;
+}
+
+/* Blockquote */
+.prose-note blockquote {
+  border-left: 4px solid rgb(var(--border));
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: rgb(var(--muted));
+  font-style: italic;
+}
+
+/* Links */
+.prose-note a {
+  color: #0284c7; /* sky-600 */
+  text-underline-offset: 2px;
+}
+.dark .prose-note a {
+  color: #7dd3fc; /* sky-300 */
+}
+.prose-note a:hover {
+  text-decoration: underline;
+}
