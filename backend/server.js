@@ -35,16 +35,23 @@ const __dirname = path.dirname(__filename);
 const defaultAllowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
+  // Include your production frontend by default when NODE_ENV=production
+  // but we also allow setting via env var for flexibility.
+  "https://questly-sandy.vercel.app",
 ];
+
 const envOrigins = (process.env.CORS_ORIGINS || "")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
+
 const allowedOrigins = envOrigins.length ? envOrigins : defaultAllowedOrigins;
 
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin) return callback(null, true); // health checks, curl
+    // Allow non-browser tools (no Origin) like curl/health checks
+    if (!origin) return callback(null, true);
+
     const ok = allowedOrigins.includes(origin);
     return ok
       ? callback(null, true)
@@ -53,12 +60,20 @@ const corsOptions = {
   credentials: true,
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 204,
 };
 
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.set("trust proxy", 1);
+
+/**
+ * Important: trust proxy must be set before session for secure cookies
+ * to be recognized when behind a proxy (Heroku/Render/Nginx).
+ */
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
 
 app.use(
   session({
@@ -68,10 +83,11 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production", // must be true over HTTPS
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // cross-site
       maxAge: 1000 * 60 * 60 * 4,
       path: "/",
+      // domain: ".your-domain.com" // Not needed here; omit unless using subdomains
     },
   })
 );
@@ -82,6 +98,7 @@ configurePassport(passport);
 
 app.use(express.static(path.join(__dirname, "public")));
 
+// Make user accessible
 app.use((req, _res, next) => {
   req.appUser = req.user || null;
   next();
