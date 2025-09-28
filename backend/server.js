@@ -15,7 +15,7 @@ import sessionRoutes from "./routes/sessions.js";
 import noteRoutes from "./routes/notes.js";
 import profileRoutes from "./routes/profile.js";
 
-import { connectDB, query } from "./models/db.js";
+import { connectDB } from "./models/db.js";
 
 // Only load .env in non-production
 if (process.env.NODE_ENV !== "production") {
@@ -35,8 +35,6 @@ const __dirname = path.dirname(__filename);
 const defaultAllowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
-  // Include your production frontend by default when NODE_ENV=production
-  // but we also allow setting via env var for flexibility.
   "https://questly-sandy.vercel.app",
 ];
 
@@ -49,13 +47,9 @@ const allowedOrigins = envOrigins.length ? envOrigins : defaultAllowedOrigins;
 
 const corsOptions = {
   origin(origin, callback) {
-    // Allow non-browser tools (no Origin) like curl/health checks
     if (!origin) return callback(null, true);
-
     const ok = allowedOrigins.includes(origin);
-    return ok
-      ? callback(null, true)
-      : callback(new Error(`CORS blocked: ${origin}`));
+    return ok ? callback(null, true) : callback(new Error(`CORS blocked: ${origin}`));
   },
   credentials: true,
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
@@ -69,7 +63,6 @@ app.use(express.json());
 
 /**
  * Important: trust proxy must be set before session for secure cookies
- * to be recognized when behind a proxy (Heroku/Render/Nginx).
  */
 if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
@@ -83,18 +76,18 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // must be true over HTTPS
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // cross-site
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 4,
       path: "/",
-      // domain: ".your-domain.com" // Not needed here; omit unless using subdomains
     },
   })
 );
 
+/* MINIMAL FIX: configure passport BEFORE using passport middlewares */
+configurePassport(passport);
 app.use(passport.initialize());
 app.use(passport.session());
-configurePassport(passport);
 
 app.use(express.static(path.join(__dirname, "public")));
 
