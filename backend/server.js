@@ -40,15 +40,15 @@ const defaultAllowedOrigins = [
 
 const envOrigins = (process.env.CORS_ORIGINS || "")
   .split(",")
-  .map((s) => s.trim())
+  .map((s) => s.trim()) // IMPORTANT: trim to remove spaces from env var
   .filter(Boolean);
 
 const allowedOrigins = envOrigins.length ? envOrigins : defaultAllowedOrigins;
 
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin) return callback(null, true);
-    const ok = allowedOrigins.includes(origin);
+    if (!origin) return callback(null, true); // health checks / curl
+    const ok = allowedOrigins.includes(origin); // exact match, so no trailing slashes in env
     return ok ? callback(null, true) : callback(new Error(`CORS blocked: ${origin}`));
   },
   credentials: true,
@@ -62,11 +62,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 /**
- * Important: trust proxy must be set before session for secure cookies
+ * TRUST PROXY MUST BE BEFORE session() in Render/Cloudflare so secure cookies are accepted.
+ * Do it unconditionally; it’s harmless locally and necessary in prod behind a proxy.
  */
-if (process.env.NODE_ENV === "production") {
-  app.set("trust proxy", 1);
-}
+app.set("trust proxy", 1);
 
 app.use(
   session({
@@ -76,15 +75,15 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production", // HTTPS only in prod
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // cross‑site cookie for FE on Vercel
       maxAge: 1000 * 60 * 60 * 4,
       path: "/",
     },
   })
 );
 
-/* MINIMAL FIX: configure passport BEFORE using passport middlewares */
+/* Register strategies BEFORE using passport middlewares */
 configurePassport(passport);
 app.use(passport.initialize());
 app.use(passport.session());
