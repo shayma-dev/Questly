@@ -218,8 +218,9 @@ export default function LandingPageUI({
               A calmer way to study and ship your goals.
             </h1>
             <p className="text-[rgb(var(--muted))]">
-              Tasks, weekly planning, focus sessions, and tidy notes—designed to
-              feel light. Questly keeps you moving without getting in the way.
+              Tasks, weekly planning, focus sessions, and tidy notes, designed
+              to feel light. Questly keeps you moving without getting in the
+              way.
             </p>
 
             <ul className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -249,15 +250,6 @@ export default function LandingPageUI({
                 </li>
               ))}
             </ul>
-
-            {/* Micro social proof */}
-            <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-[rgb(var(--muted))]">
-              <span>Trusted by study groups at 20+ schools</span>
-              <span className="h-1 w-1 rounded-full bg-[rgb(var(--muted))]/50" />
-              <span>Avg. session length 42m</span>
-              <span className="h-1 w-1 rounded-full bg-[rgb(var(--muted))]/50" />
-              <span>Zero ads. Ever.</span>
-            </div>
           </div>
 
           {/* Right: Inline Signup Card */}
@@ -273,11 +265,6 @@ export default function LandingPageUI({
             onOpenLogin={() => setAuthMode("login")}
             loading={loading}
           />
-        </div>
-
-        {/* Social proof strip */}
-        <div className="mx-auto max-w-6xl px-4 pb-8">
-
         </div>
       </section>
 
@@ -519,7 +506,9 @@ function FeatureStory({ title, copy, Icon, hue, align = "left" }) {
         <div className="flex items-start gap-3">
           <div
             className="h-10 w-10 shrink-0 rounded-full"
-            style={{ background: `linear-gradient(135deg, hsl(${hue} 75% 60%), hsl(${hue} 80% 70%))` }}
+            style={{
+              background: `linear-gradient(135deg, hsl(${hue} 75% 60%), hsl(${hue} 80% 70%))`,
+            }}
           />
           <div>
             <h3 className="text-lg font-bold tracking-tight">{title}</h3>
