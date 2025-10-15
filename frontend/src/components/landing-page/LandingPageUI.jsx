@@ -1,3 +1,4 @@
+
 /* eslint-disable no-unused-vars */
 // src/components/landing-page/LandingPageUI.jsx
 import React, { useMemo, useState } from "react";
@@ -207,41 +208,58 @@ export default function LandingPageUI({
         </div>
       </header>
 
-      {/* HERO — Split Onboarding */}
+      {/* HERO — Centered Content */}
       <section className="relative overflow-hidden">
         <HeroBackground />
 
-        <div className="relative mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 pb-10 pt-12 md:grid-cols-[1.2fr_1fr] md:pb-16 md:pt-20">
-          {/* Left: Promise + Bullets + Micro-proof */}
-          <div className="space-y-5">
+        <div className="relative mx-auto max-w-4xl px-4 pb-12 pt-16 md:pb-20 md:pt-24">
+          {/* Centered Content */}
+          <div className="space-y-6 text-center">
             <h1 className="banner-title text-balance">
               A calmer way to study and ship your goals.
             </h1>
-            <p className="text-[rgb(var(--muted))]">
+            <p className="mx-auto max-w-2xl text-lg text-[rgb(var(--muted))]">
               Tasks, weekly planning, focus sessions, and tidy notes, designed
               to feel light. Questly keeps you moving without getting in the
               way.
             </p>
 
-            <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <GradientButton 
+                onClick={() => setAuthMode("signup")}
+                className="px-8 py-3 text-base"
+              >
+                Get Started Free
+              </GradientButton>
+              <SoftSecondary 
+                onClick={() => setAuthMode("login")}
+                className="px-8 py-3 text-base"
+              >
+                Log in
+              </SoftSecondary>
+            </div>
+
+            {/* Feature Bullets */}
+            <ul className="mx-auto mt-10 grid max-w-3xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 { t: "One place for school", s: "Tasks, planner, notes" },
                 { t: "Routines that stick", s: "Gentle streaks & stats" },
-                { t: "Fast by design", s: "Keyboard friendly, minimal clicks" },
-                { t: "Made for teams", s: "Share and study together" },
+                { t: "On all devices", s: "Mobile Responsive" },
+                { t: "Study with color", s: "Color coded by subject" },
               ].map((x) => (
                 <li
                   key={x.t}
-                  className="flex items-start gap-3 rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-3"
+                  className="flex flex-col items-center gap-2 rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-4"
                 >
                   <span
-                    className="mt-1 inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+                    className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
                     style={{
                       background:
                         "conic-gradient(from 20deg, var(--hero-to), var(--hero-from))",
                     }}
                   />
-                  <div>
+                  <div className="text-center">
                     <div className="text-sm font-semibold">{x.t}</div>
                     <div className="text-xs text-[rgb(var(--muted))]">
                       {x.s}
@@ -251,24 +269,10 @@ export default function LandingPageUI({
               ))}
             </ul>
           </div>
-
-          {/* Right: Inline Signup Card */}
-          <InlineSignupCard
-            // Wire directly to your existing handlers
-            signupEmail={signupEmail}
-            signupPassword={signupPassword}
-            signupUsername={signupUsername}
-            onChangeSignupEmail={onChangeSignupEmail}
-            onChangeSignupPassword={onChangeSignupPassword}
-            onChangeSignupUsername={onChangeSignupUsername}
-            onSignup={onSignup}
-            onOpenLogin={() => setAuthMode("login")}
-            loading={loading}
-          />
         </div>
       </section>
 
-      {/* FEATURES — “Stories” layout */}
+      {/* FEATURES — "Stories" layout */}
       <section className="mx-auto max-w-6xl px-4 py-12 md:py-16">
         <div className="grid gap-6">
           <FeatureStory
@@ -280,7 +284,7 @@ export default function LandingPageUI({
           />
           <FeatureStory
             title="Stay focused, not rigid"
-            copy="Pomodoro that feels gentle—break nudges, streaks, and a calm progress ring."
+            copy="Pomodoro that feels gentle, break nudges, streaks, and a calm progress ring."
             Icon={IconFocusFeature}
             hue={250}
             align="right"
@@ -300,7 +304,7 @@ export default function LandingPageUI({
             {
               key: "tasks",
               title: "Tasks that feel simple",
-              desc: "Add, date, done. That’s it.",
+              desc: "Add, date, done. That's it.",
               hue: 200,
               Icon: IconTasksFeature,
             },
@@ -360,7 +364,7 @@ export default function LandingPageUI({
         </div>
       </footer>
 
-      {/* AUTH MODAL (still available for users preferring modal) */}
+      {/* AUTH MODAL */}
       <AuthModal
         open={!!authMode}
         mode={authMode}
@@ -400,83 +404,6 @@ function HeroBackground() {
         opacity: 0.38,
       }}
     />
-  );
-}
-
-/* -------- Inline Signup Card -------- */
-function InlineSignupCard({
-  signupEmail,
-  signupPassword,
-  signupUsername,
-  onChangeSignupEmail,
-  onChangeSignupPassword,
-  onChangeSignupUsername,
-  onSignup,
-  onOpenLogin,
-  loading,
-}) {
-  const [localEmail, setLocalEmail] = useState(signupEmail || "");
-  const [localPassword, setLocalPassword] = useState(signupPassword || "");
-  const [localUsername, setLocalUsername] = useState(signupUsername || "");
-
-  // Keep parent state in sync (no structural change)
-  const syncAndSubmit = (e) => {
-    e.preventDefault();
-    onChangeSignupEmail(localEmail);
-    onChangeSignupPassword(localPassword);
-    onChangeSignupUsername(localUsername);
-    onSignup(e);
-  };
-
-  return (
-    <Card className="border border-[rgb(var(--border))] shadow-xl">
-      <CardHeader
-        title="Create your free account"
-        actions={
-          <button
-            onClick={onOpenLogin}
-            className="text-sm text-blue-600 hover:underline dark:text-blue-300"
-          >
-            I have an account
-          </button>
-        }
-      />
-      <CardBody>
-        <form onSubmit={syncAndSubmit} className="space-y-3">
-          <Input
-            type="text"
-            placeholder="Username"
-            value={localUsername}
-            onChange={(e) => setLocalUsername(e.target.value)}
-            required
-          />
-          <Input
-            type="email"
-            placeholder="Email"
-            value={localEmail}
-            onChange={(e) => setLocalEmail(e.target.value)}
-            required
-          />
-          <Input
-            type="password"
-            placeholder="Password"
-            value={localPassword}
-            onChange={(e) => setLocalPassword(e.target.value)}
-            required
-          />
-          <GradientButton
-            type="submit"
-            className="w-full justify-center"
-            disabled={loading}
-          >
-            {loading ? "Creating..." : "Create account"}
-          </GradientButton>
-          <p className="text-center text-xs text-[rgb(var(--muted))]">
-            By continuing, you agree to our terms.
-          </p>
-        </form>
-      </CardBody>
-    </Card>
   );
 }
 
@@ -575,7 +502,7 @@ function MiniFeature({ Icon, title, desc, hue }) {
   );
 }
 
-/* -------- Auth Modal (kept for parity) -------- */
+/* -------- Auth Modal -------- */
 function AuthModal({
   open,
   mode,

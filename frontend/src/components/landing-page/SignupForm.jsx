@@ -69,7 +69,7 @@ export default function SignupForm({
     <form onSubmit={handleSubmit} className="grid gap-3">
       <FormField label="Username">
         <Input
-          placeholder="e.g., alex"
+          placeholder="e.g., Mohammed"
           value={username}
           onChange={(e) => onChangeUsername?.(e.target.value)}
           required
